@@ -1,0 +1,12 @@
+*.xlsx
+
+*.txt
+
+*.csv
+
+*.RData
+
+*.Rhistory
+
+*.zip
+.Rproj.user
