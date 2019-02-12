@@ -317,6 +317,8 @@ f <- function(x  = ls()) {
   x
 }
 
+
+
 f()
 
 f(ls())
@@ -543,7 +545,30 @@ getwd()
 
 in_dir("~", getwd())
 
+#'#### 연습문제
+#'
+#' 1. `source()` 의 chdir 파라미터는 `in_dir()`과 어떻게 다른가? 한 접근법을 다른 것보다 선호하는 이유는 무엇인가?
+#' 
+#' 2. 어떤 함수가 `library()`의 행동을 무효화하는가? `option()`과 `par()`의 값을 저장하고 복원하는 방법은 무엇인가?
+#' 
+#' 3. (플롯을 그리는 코드가 동작하는지 여부와는 관계없이 항상) 그래픽 디바이스를 시동하는 함수를 작성한 후 제공된
+#' 코드를 실행하고, 그 그래픽 디바이스를 종료해보라.
+#' 
+#' 4. `capture.output()`의 단순한 버전을 구현하기 위해 `on.exit()`를 사용할 수 있다.
 
+capture.output2 <- function(code) {
+  temp <- tempfile()
+  on.exit(file.remove(temp), add = T)
+  
+  sink(temp)
+  on.exit(sink(), add = T)
+  
+  force(code)
+  readLines(temp)
+}
+
+
+capture.output2(cat("a", "b", "c", sep = "\n"))
 
 
 
