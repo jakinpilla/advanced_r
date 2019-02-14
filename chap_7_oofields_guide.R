@@ -83,7 +83,7 @@ is.primitive(sum)
 #' 
 #' ### 객체인식, 제너릭 함수, 그리고 메소드
 #' 
-#' S3 객체인지 쉽게 확인하는 방법은 `is.object(x) & !isS4(x)`, 즉 개체이면서 S4가 아닌지를 평각하는 것이다.
+#' S3 객체인지 쉽게 확인하는 방법은 `is.object(x) & !isS4(x)`, 즉 개체이면서 S4가 아닌지를 평가하는 것이다.
 #' 보다 쉬운 방법은 `pryr::otype()`을 사용하는 것이다.
 #' 
 library(pryr)
@@ -225,7 +225,244 @@ f.a(c)
 #' 1. `t()`와 `t.test()`의 소스 코드를 읽어보고, `t.test()`가 `S3` 메소드가 아니라 `S3` 제너릭인 것을 확인하라. 
 #' `test` 클래스와 이 클래스를 이용한 `t()` 호출을 생성한다면 어떤 일이 일어나는가?
 #' 
+
+stats:::t.ts
+
+getAnywhere(t.ts)
+
+
+#' 2. 어떤 클래스가 베이스 R의 Math 그룹 제너릭에 대한 메소드를 가지는가? 소스 코드를 읽어보라. 그 메소드가 어떻게
+#' 동작하는가?
 #' 
+#' 
+#' 3. R은 일시(datetime) 데이터를 표현하기 위한 두 가지 클래스(POSIXct와 POSIXlt)를 갖고 있는데, 이 둘은 모두 POSIXt를 
+#' 상속한 것이다. 어느 제너릭이 이 두 클래스에 대해 상이한 행동을 하는가? 어느 제너릭이 동일한 행동을 공유하는가?
+#' 
+#' 4. 어느 베이스 제너릭이 가장 많은 수의 정의된 메소드를 갖고 있는가?
+#' 
+#' 5. UseMethod()는 특별한 방법으로 메소드를 호출한다. 다음 코드가 무엇을 반환할지 예상해 본 후 실행해 보고,
+#' 어떤 일이 일어나고 있는지 확인하기 위해 UseMethod()의 도움말을 읽어보라. 가능한 한 가장 단순한 형태로 그 규칙을 
+#' 설명해 보라.
+#' 
+y <- 1
+g <- function(x) {
+  y <- 2
+  UseMethod("g")
+}
+
+g.numeric <- function(x) y
+g(10)
+
+ h <- function(x) {
+   x <- 10
+   UseMethod("h")
+ }
+
+h.character <- function(x) paste("char", x)
+h.numeric <- function(x) paste("num", x)
+
+h("a")
+
+
+#'
+#' 6. 내부 제너릭은 베이스 타입의 내재 클래스에 디스패치 않는다. 다음 사례에서 f와 g의 길이가 다른 이유를 알아내기 위해
+#' 내부 제너릭 문서를 주의깊게 읽어보라. 어떤 함수가 f와 g의 행동을 구별하는데 도움이 되는가?
+#' 
+f <- function() 1
+g <- function() 2
+
+
+class(g) <- "function"
+
+class(f)
+class(g)
+
+length.function <- function(x) "function"
+length(f)
+length(g)
+
+
+
+#' ### S4
+#' 
+#' formality and rigour
+#' 
+#' - 클래스는 그 필드와 상속구조(부모 클래스)를 설명하는 형식적 정의를 갖고 있다.
+#' 
+#' - 메소드 디스패치는 제너릭 함수에 대해 단 하나의 인자가 아니라 복수의 인자에 기초할 수 있다.
+#' 
+#' - 어떤 S4 객체로부터 슬롯(필드라고도 함)을 추출하기 위한 `@`이라는 특별한 연산자가 있다.
+#' 
+#' 
+#' ### 객체, 제너릭 함수, 그리고 메소드 인식
+#' 
+library(stats4)
+
+# example(mle)에서
+
+y <- c(26, 17, 13, 12, 20, 5, 9, 8, 5, 4, 8)
+nLL <- function(lambda) - sum(dpois(y, lambda, log = T))
+fit <- mle(nLL, start = list(lambda = 5), nobs = length(y))
+
+#' S4 객체
+isS4(fit)
+
+
+otype(fit)
+
+#' S4 제너릭
+isS4(nobs)
+
+ftype(nobs)
+
+#' 나중에 설명되어 있는 S4 메소드 추출
+
+mle_nobs <- method_from_call(nobs(fit))
+isS4(mle_nobs)
+
+
+ftype(mle_nobs)
+
+#' 객체가 상속한 모든 클래스를 나열 : `is()`
+is(fit)
+
+#' 객체가 특정한 클래스를 상속햇는지를 나열 : `is(a, b)`
+is(fit, "mle")
+
+
+#' getGenerics()로 모든 S4 제너릭의 목록을 얻을 수 있다.
+#' 
+#' getClasses()로 모든 S4 클래스의 목록을 얻을 수 있다.
+#'
+#' 이 목록은 S3 클래스와 베이스타입에 대한 `shim` 클래스를 포함한다.
+#'
+#' showMehod()로 선택을 제한하면서 S4 메소드를 나열할 수 있다.
+#' 
+#' 전역환경에서 사용할 수 있는 메소드에 대한 검색을 제한하기 위해 `where = search()`를
+#' 사용하는 것도 좋은 아이디어이다.
+#' 
+#' ### 클래스를 정의하고 객체 생성하기
+#' 
+#' S4는 반드시 `setClass()`로 클랫의 표현을 정의하고, `new()`로 새로운 객체를 생성해야 한다.
+#' 
+#' `class?mle`처럼 특수한 구문으로 특정 클래스에 대한 문서를 찾을 수 있다.
+#' 
+#' 세 가지 핵심적인 특징을 가지고 있다.
+#' 
+#'  - 이름(name) : `alpha-numeric` 클래스 식별자. 관행적으로 S4 클래스의 이름은 문자형 낙타등표기법(UpperCamelCase)을 사용한다.
+#'  
+#'  - 슬롯 이름과 허용된 클래스를 정의하는 이름 있는 리스트로 된 `slots` 또는 `fields`. 예를들면
+#'  `list(name = "character", age = "numeric"` 처럼 사용
+#'  
+#'  - 상속받은 클래스를 전달하는 문자열(S4 contain). 다중 상속에 다중 클래스를 제공할 수 있지만 복잡하다.
+#'  
+setClass("Person",
+         slots = list(name = "character", age = "numeric"))
+
+setClass("Employee",
+         slots = list(boss = "Person"),
+         contains = "Person")
+
+alice <- new("Person", name = "Alice", age = 40)
+john <- new("Employee", name = "John", age = 20, boss = alice)
+
+
+alice@age
+
+slot(john, "boss")
+
+setClass("RangedNumeric",
+         contains = "numeric",
+         slots = list(min))
+
+#' ### 새로운 메소드와 제너릭 생성하기
+#' 
+#' - `setGeneric()` : 새로운 제너릭을 생성하거나 기존 함수를 제너릭으로 반환
+#'
+#' - `setMethod()` : 제너릭의 이름, 메소드가 연계되어야 할 클래스, 그리고 그 메소드를
+#' 구현한 함수를 취함.
+#' 
+setGeneric("union")
+
+setMethod("union",
+          c(x = "data.frame",  y = "data.frame"),
+          function(x, y) {
+            unique(rbind(x, y))
+          })
+
+#' 새로운 제너릭을 처음부터 생성한다면 `standardGeneric()`을 호출하는 함수를 제공할 
+#' 필요가 있다.
+#' 
+setGeneric("myGeneric", function(x) {
+  standardGeneric("myGeneric")
+})
+
+
+#' 메소드 디스패치
+#' 
+#' 메소드에서 제너릭 이름과 클래스 이름을 취함
+selectMethod("nobs", list("mle"))
+
+#' `pryr`에서 : 비평가된 함수 호출 취함
+method_from_call(nobs(fit))
+
+
+#' ### 연습문제
+#' 
+#' 1. 가장 많은 메소드를 가지는 S4 제너릭은 무엇인가? 가장 많은 메소드와 연계되어 있는
+#' S4 클래스는 무엇인가?
+#' 
+#' 2. 기존 클래스를 포함하지 않는 새로운 S4 클래스를 정의하면 무슨 일이 일어나는가?
+#' 
+#' 3. S4 객체를 S3 제너릭에 전달하면 어떻게 되는가? 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

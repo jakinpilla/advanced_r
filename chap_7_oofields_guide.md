@@ -1,7 +1,7 @@
 Advanced\_R(chap\_7\_OO\_fields\_guide)
 ================
 jakinpilla
-2019-02-12
+2019-02-14
 
 -   [객체지향 필드 가이드](#객체지향-필드-가이드)
     -   [퀴즈](#퀴즈)
@@ -9,7 +9,9 @@ jakinpilla
         -   [객체인식, 제너릭 함수, 그리고 메소드](#객체인식-제너릭-함수-그리고-메소드)
         -   [클래스를 정의하고 객체 생성하기](#클래스를-정의하고-객체-생성하기)
         -   [새로운 메소드와 제너릭 생성하기](#새로운-메소드와-제너릭-생성하기)
-        -   [메소드 디스패치](#메소드-디스패치)
+        -   [연습문제](#연습문제)
+        -   [S4](#s4)
+        -   [객체, 제너릭 함수, 그리고 메소드 인식](#객체-제너릭-함수-그리고-메소드-인식)
 
 객체지향 필드 가이드
 ====================
@@ -88,11 +90,11 @@ is.primitive(sum)
 
 S3 객체는 어떤 베이스 타입 위에서도 구축될 수 있고, S4 객체는 특수한 베이스 타입을 사용하며, RC 객체는 S4와 (다른 베이스 타입인) 환경의 결합이다.
 
-그 객체가 S3, S4 또는 RC 행동을 갖고 있지 않은지 여부를 확인하고 싶다면 `is.objec(x)`가 FALSE를 반환하는지 확인하라.
+그 객체가 S3, S4 또는 RC 행동을 갖고 있지 않은지 여부를 확인하고 싶다면 `is.object(x)`가 FALSE를 반환하는지 확인하라.
 
 ### 객체인식, 제너릭 함수, 그리고 메소드
 
-S3 객체인지 쉽게 확인하는 방법은 ``` is.object(x) & !isS4(x)``, 즉 개체이면서 S4가 아닌지를 평각하는 것이다. 보다 쉬운 방법은 ```pryr::otype()\`을 사용하는 것이다.
+S3 객체인지 쉽게 확인하는 방법은 `is.object(x) & !isS4(x)`, 즉 개체이면서 S4가 아닌지를 평가하는 것이다. 보다 쉬운 방법은 `pryr::otype()`을 사용하는 것이다.
 
 ``` r
 library(pryr)
@@ -126,7 +128,7 @@ mean
 
     ## function (x, ...) 
     ## UseMethod("mean")
-    ## <bytecode: 0x7fffca109348>
+    ## <bytecode: 0x7fffde9d8558>
     ## <environment: namespace:base>
 
 ``` r
@@ -280,11 +282,7 @@ mean(a)
 
     ## [1] "a"
 
-``` r
-# 메소드는 제너릭과 호환되는 클래스를 반환하는지의 여부를 확인하지 않는다.
-```
-
-### 메소드 디스패치
+메소드는 제너릭과 호환되는 클래스를 반환하는지의 여부를 확인하지 않는다. \#\#\# 메소드 디스패치
 
 S3 메소드 디스패치는 상대적으로 간단하다. `UseMethod()`는 `paste0("generic", ".", "c(class(x), "default"))`처럼 함수 이름 벡터를 생성한 후 각각을 순서대로 탐색한다.
 
@@ -313,3 +311,230 @@ f(structure(list(), class = "c"))
 ```
 
     ## [1] "Unknown class"
+
+`group_generic`은 하나의 함수로 복수의 제너릭에 대한 메소드 구현을 가능하게 한다.
+
+네 개의 `group_generic`과 그것들이 포함하는 함수는 다음과 같다.
+
+-   Math : abs, sign, sqrt, floor, cos, sin, log, exp,...
+
+-   Ops : +, -, \*, /, ^, %%, %/%, &, |, ==, !=, &lt;, &lt;=, &gt;=, &gt;
+
+-   Summary : all, amy, sum, prod, min, max, range
+
+-   Complex : Arg, Conj, Im, Mod, Re
+
+그룹 제너릭 함수 내부에서 특수한 변수인 `.Generic`이 호출된 실제 제너릭 함수를 제공한다는 점에 주의하여야 한다.
+
+메소드는 일반적이 R 함수이기 때문에 그 메소드를 직접 호출할 수 있다.
+
+``` r
+c <- structure(list(), class = "c")
+```
+
+올바른 메소드 호출
+
+``` r
+f.default(c)
+```
+
+    ## [1] "Unknown class"
+
+R이 잘못된 메소드를 호출하도록 강제
+
+``` r
+f.a(c)
+```
+
+    ## [1] "Class a"
+
+### 연습문제
+
+1.  `t()`와 `t.test()`의 소스 코드를 읽어보고, `t.test()`가 `S3` 메소드가 아니라 `S3` 제너릭인 것을 확인하라. `test` 클래스와 이 클래스를 이용한 `t()` 호출을 생성한다면 어떤 일이 일어나는가?
+
+``` r
+stats:::t.ts
+```
+
+    ## function (x) 
+    ## {
+    ##     cl <- oldClass(x)
+    ##     other <- !(cl %in% c("ts", "mts"))
+    ##     class(x) <- if (any(other)) 
+    ##         cl[other]
+    ##     attr(x, "tsp") <- NULL
+    ##     t(x)
+    ## }
+    ## <bytecode: 0x7fffe37a1720>
+    ## <environment: namespace:stats>
+
+``` r
+getAnywhere(t.ts)
+```
+
+    ## A single object matching 't.ts' was found
+    ## It was found in the following places
+    ##   registered S3 method for t from namespace stats
+    ##   namespace:stats
+    ## with value
+    ## 
+    ## function (x) 
+    ## {
+    ##     cl <- oldClass(x)
+    ##     other <- !(cl %in% c("ts", "mts"))
+    ##     class(x) <- if (any(other)) 
+    ##         cl[other]
+    ##     attr(x, "tsp") <- NULL
+    ##     t(x)
+    ## }
+    ## <bytecode: 0x7fffe37a1720>
+    ## <environment: namespace:stats>
+
+1.  어떤 클래스가 베이스 R의 Math 그룹 제너릭에 대한 메소드를 가지는가? 소스 코드를 읽어보라. 그 메소드가 어떻게 동작하는가?
+
+2.  R은 일시(datetime) 데이터를 표현하기 위한 두 가지 클래스(POSIXct와 POSIXlt)를 갖고 있는데, 이 둘은 모두 POSIXt를 상속한 것이다. 어느 제너릭이 이 두 클래스에 대해 상이한 행동을 하는가? 어느 제너릭이 동일한 행동을 공유하는가?
+
+3.  어느 베이스 제너릭이 가장 많은 수의 정의된 메소드를 갖고 있는가?
+
+4.  UseMethod()는 특별한 방법으로 메소드를 호출한다. 다음 코드가 무엇을 반환할지 예상해 본 후 실행해 보고, 어떤 일이 일어나고 있는지 확인하기 위해 UseMethod()의 도움말을 읽어보라. 가능한 한 가장 단순한 형태로 그 규칙을 설명해 보라.
+
+``` r
+y <- 1
+g <- function(x) {
+  y <- 2
+  UseMethod("g")
+}
+
+g.numeric <- function(x) y
+g(10)
+```
+
+    ## [1] 2
+
+``` r
+ h <- function(x) {
+   x <- 10
+   UseMethod("h")
+ }
+
+h.character <- function(x) paste("char", x)
+h.numeric <- function(x) paste("num", x)
+
+h("a")
+```
+
+    ## [1] "char a"
+
+1.  내부 제너릭은 베이스 타입의 내재 클래스에 디스패치 않는다. 다음 사례에서 f와 g의 길이가 다른 이유를 알아내기 위해 내부 제너릭 문서를 주의깊게 읽어보라. 어떤 함수가 f와 g의 행동을 구별하는데 도움이 되는가?
+
+``` r
+f <- function() 1
+g <- function() 2
+
+
+class(g) <- "function"
+
+class(f)
+```
+
+    ## [1] "function"
+
+``` r
+class(g)
+```
+
+    ## [1] "function"
+
+``` r
+length.function <- function(x) "function"
+length(f)
+```
+
+    ## [1] 1
+
+``` r
+length(g)
+```
+
+    ## [1] "function"
+
+### S4
+
+formality and rigour
+
+-   클래스는 그 필드와 상속구조(부모 클래스)를 설명하는 형식적 정의를 갖고 있다.
+
+-   메소드 디스패치는 제너릭 함수에 대해 단 하나의 인자가 아니라 복수의 인자에 기초할 수 있다.
+
+-   어떤 S4 객체로부터 슬롯(필드라고도 함)을 추출하기 위한 `@`이라는 특별한 연산자가 있다.
+
+### 객체, 제너릭 함수, 그리고 메소드 인식
+
+``` r
+library(stats4)
+
+# example(mle)에서
+
+y <- c(26, 17, 13, 12, 20, 5, 9, 8, 5, 4, 8)
+nLL <- function(lambda) - sum(dpois(y, lambda, log = T))
+fit <- mle(nLL, start = list(lambda = 5), nobs = length(y))
+```
+
+S4 객체
+
+``` r
+isS4(fit)
+```
+
+    ## [1] TRUE
+
+``` r
+otype(fit)
+```
+
+    ## [1] "S4"
+
+S4 제너릭
+
+``` r
+isS4(nobs)
+```
+
+    ## [1] TRUE
+
+``` r
+ftype(nobs)
+```
+
+    ## [1] "s4"      "generic"
+
+나중에 설명되어 있는 S4 메소드 추출
+
+``` r
+mle_nobs <- method_from_call(nobs(fit))
+isS4(mle_nobs)
+```
+
+    ## [1] TRUE
+
+``` r
+ftype(mle_nobs)
+```
+
+    ## [1] "s4"     "method"
+
+객체가 상속한 모든 클래스를 나열 : `is()`
+
+``` r
+is(fit)
+```
+
+    ## [1] "mle"
+
+객체가 특정한 클래스를 상속햇는지를 나열 : `is(a, b)`
+
+``` r
+is(fit, "mle")
+```
+
+    ## [1] TRUE
