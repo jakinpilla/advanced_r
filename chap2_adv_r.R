@@ -5,22 +5,38 @@
 #' output: 
 #'    github_document : 
 #'        toc : true
-#'        toc_depth : 4
 #' ---
 #' 
 #' 
 
+#+ message = FALSE, warning = FALSE
+library(tidyverse)
+
 #' ## 벡터
 #' 
-#' ### 원자 벡터
+#' ### 원자벡터
 #' 
-#' 논리형, 정수형, 더불형, 문자형, (복소수형, 원시형)
+#' 원자벡터과 리스트는 공통적으로 유형(typeof), 길이(length), 속성(attributes) 등을 가지고 있습니다.
 #' 
+#' `is.vector()` : 객체가 이름과 다른 속성을 가지지 않는 경우에만 TRUE를 반환합니다. 어떤 객체가 실질적으로
+#' 벡터인지 알려면 `is.atomic()` || `is.list()` 를 사용합니다.
+#' 
+a <- c(1, 2, 3)
+is.vector(a)
+names(a) <- c('x', 'y', 'z')
+is.vector(a)
+
+is.atomic(a)
+is.list(a)
+ 
 dbl_var <- c(1, 2.5, 4.5)
 int_var <- c(1L, 6L, 10L)
 log_var <- c(TRUE, FALSE, T, F)
 chr_var <- c("these are", "some strings")
 
+#' 원자벡터는 `c()`로 감싸더라도 항상 벡터입니다. `NA`를 `c()` 안에서 사용하면 강제로 그 형태에 맞게 형변환이 됩니다.
+#' 이는 NA_real_, NA_integer_, NA_character_ 등의 특수한 형태가 있기 때문에 가능합니다.
+#' 
 c(1, c(2, c(3, 4)))
 
 #' #### 유형과 검증
@@ -37,18 +53,20 @@ is.atomic(dbl_var)
 is.numeric(int_var)
 is.numeric(dbl_var)
 
-#' coercion
-#' 논리형이 가장 유연하지 않으며, 정수형, 더불형, 그리고 문자형 순으로 유연하다.
+#' #### 강제형변환
+#' 
+#' 다른 유형을 결합하려고 하면 강제형변환 `coercion`이 일어납니다. 이는 가장 유연한 방향으로 일어납니다.
+#' 논리형이 가장 유연하지 않으며, 정수형, 더불형, 그리고 문자형 순으로 유연합니다.
 str(c("a", 1))
 
-#' 벡터가 정수형이나 더블형으로 강제변환될 때 TRUE는 1이 되고, FALSE는 0이 된다.
+#' 벡터가 정수형이나 더블형으로 강제변환될 때 TRUE는 1이 되고, FALSE는 0이 됩니다.
 x <- c(FALSE, FALSE, TRUE)
 as.numeric(x)
 sum(x) # TRUE의 총수
 mean(x) # TRUE인 비율
 
 #' 강제변환에 대한 혼란에 대비하여 `as.character`, `as.double()`, `as.integer()`, 
-#' `as.logical()` 을 이용한 명시적 형변환을 해야 한다.
+#' `as.logical()` 을 이용한 명시적 형변환을 하는 것을 권장합니다.
 #' 
 #' 
 #' ### 리스트
@@ -56,18 +74,18 @@ mean(x) # TRUE인 비율
 x <- list(1:3, "a", c(TRUE, FALSE, TRUE), c(2.3, 5.9))
 str(x)
 
-#' `list`를 `recursive vector`라고도 부르는데 그 이유는 리스트가 다른 리스트를 표현할 수 있기
-#' 때문이다.
+
+#' `list`를 `recursive vector`라고도 부르는데 그 이유는 리스트가 다른 리스트를 표현할 수 있기 때문입니다.
 #' 
 x <- list(list(list(list())))
 str(x)
 is.recursive(x)
 
-#' `c()`는 여러 리스트를 하나의 데이터 객체로 만든다. 만약 어떤 원자 벡터와 리스트가
-#' 결합된 형태로 주어진다면 `c()`는 그 둘을 결합하기 전에 그것들을 리스트로 강제형변환 할 것이다.
+#' `c()`는 여러 리스트를 하나의 데이터 객체로 만듭니다. 만약 어떤 원자 벡터와 리스트가
+#' 결합된 형태로 주어진다면 `c()`는 그 둘을 결합하기 전에 그것들을 리스트로 강제형변환할 것입니다.
 
 x <- list(list(1, 2), c(3, 4))
-y <- c(list(1, 2), c(3, 4))
+y <- c(list(1, 2), c(3, 4)) # 이질적인 리스트와 벡터를 결합하기 전에 c()는 이것들을 강제변환함.
 
 str(x)
 str(y)
@@ -75,7 +93,8 @@ str(y)
 unlist(x)
 unlist(y)
 
-#' 데이터 프레임과 `lm()`으로 만들어진 선형 모형 객체는 모두 리스트이다.
+#' 데이터 프레임과 `lm()`으로 만들어진 선형 모형 객체는 모두 리스트입니다.
+#' 
 head(mtcars)
 is.list(mtcars)
 str(mtcars)
@@ -84,10 +103,37 @@ mod <- lm(mpg ~ wt, data = mtcars)
 is.list(mod)
 
 
-#' ### 연습문제 
+#' ### 연습문제
+#' 
+#' 1. 원자벡터의 여섯가지 유형은 무엇인가? 리스트는 원자 벡터와 어떻게 다른가?
+#' 
+#' 논리형, 정수형, 더블형, 문자형, 복소수형, 원시형 등 여섯 가지의 원자 벡터 유형이 있습니다. 리스트는 이질적인 원자
+#' 벡터들을 원소들오 가질 수 있지만  원자 벡터는 하나의 동질적인 원자 벡터들만을 가질 수 있습니다.
+#' 
+#' 2. is.vector(), is.numeric(), is.list() 그리고 is.character()의 근본적인 차이는 무엇인가?
+#' 
+#' is.vector() :
+#' is.numeric() : 데이터가 integer 혹은 double 일때 TRUE를 반환합니다.
+#' is.list() : 데이터 유형이 list 일때 TRUE를 반환합니다.
+#' is.character() : 원자 벡터가 문자형일때 TRUE를 반환합니다. 
+
+#+ echo = FALSE, out.width = '100%'
+knitr::include_graphics('./seho.jpg')
+
+#' 3. 다음 각 경우에 따라 c()의 출력결과를 예상해보자.
+#' 
 c(1, FALSE)
+
+#' 숫자형이 논리형보다 더 유연한 자료구조형이므로 FALSE가 강제형변화되어 0이 됩니다.
+
 c("a", 1)
+
+#' 문자형이 숫자형보다 더 유연한 자료구조형이므로 1이 강제형변화되어 "1"이 됩니다.
+
 c(list(1), "a")
+
+#' 
+
 c(TRUE, 1L)
 
 1 == "1" # True
@@ -101,21 +147,26 @@ class(NA_integer_)
 class(NA_complex_)
 class(NA_real_) 
 
-#' ## 속성
+#' ### 속성
+#' 
+#' 속성은 이름있는 리스트처럼 생각할 수 있습니다.
+#' 
 #' 속성은 `attr()` 함수로 개별적으로 접근할 수 있지만, `attributes()` 함수로 (리스트처럼) 한 번에 
-#' 모든 속성에 접근할 수도 있다.
+#' 모든 속성에 접근할 수도 있습니다.
 #' 
 y <- 1:10
 attr(y, "my_attribute") <- "This is a vector"
 attr(y, "my_attribute")
+
+str(y)
 
 str(attributes(y))
 
 y <- structure(1:10, my_attribute = "This is a vector")
 attr(y, "my_attribute")
 
-#' 기본적으로 대부분의 속성은 벡터를 수정할 때 상실된다.
-
+#' 기본적으로 대부분의 속성은 벡터를 수정할 때 상실됩니다.
+y
 attributes(y[1])
 attributes(sum(y[1]))
 
@@ -127,16 +178,39 @@ attributes(sum(y[1]))
 #' 
 #' > - 클래스(class), S3 객체 시스템을 구현하는데 사용한다.
 #' 
-#' 
+#' 각 속성은 값을 가져오거나 설정하기 위한 특별 접근자 함수를 가지고 있습니다.
+
+x <- c(a=1, b=2, c=3)
+
+attr(x, 'names')
+names(x)
+
+attr(x, 'dim')
+dim(x)
+
+attr(x, 'class')
+class(x)
+
+
 #' #### 이름
 #' 
+#' 이름은 다음의 3가지 방식으로 설정할 수 있습니다.
 
 x <- c(a=1, b=2, c=3)
 names(x) <- c("a", "b", "c")
 x <- setNames(1:3, c("a", "b", "c"))
 
+#' 이름은 중복이 허용됩니다.
+names(x) <- c('a', 'a', 'b')
+x
+x['a']
+x['b']
+
+
+#' 이름 중 몇 개가 생략되었다면 names() 함수는 이들 요소에 대해 빈 문자열을 반환합니다.
 y <- c(a=1, 2, 3)
 names(y)
+
 
 v <- c(1, 2, 3)
 names(v) <- c("a")
@@ -146,7 +220,7 @@ z <- c(1, 2, 3)
 names(z)
 
 #' `unnames(x)`를 이용하여 이름이 없는 새로운 벡터를 생성하거나 `names(x) <- NULL`로 
-#' 작업공간에 있는 이름을 제거할 수 있다.
+#' 작업공간에 있는 이름을 제거할 수 있습니다.
 #' 
 #' ### 팩터
 #' 
