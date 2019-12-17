@@ -117,9 +117,6 @@ is.list(mod)
 #' is.list() : 데이터 유형이 list 일때 TRUE를 반환합니다.
 #' is.character() : 원자 벡터가 문자형일때 TRUE를 반환합니다. 
 
-#+ echo = FALSE, out.width = '100%'
-knitr::include_graphics('./seho.jpg')
-
 #' 3. 다음 각 경우에 따라 c()의 출력결과를 예상해보자.
 #' 
 c(1, FALSE)

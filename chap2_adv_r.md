@@ -1,7 +1,7 @@
 Advanced\_R(chap\_2)
 ================
 jakinpilla
-2019-12-17
+2019-12-18
 
   - [벡터](#벡터)
       - [원자벡터](#원자벡터)
@@ -273,13 +273,7 @@ is.list(mod)
 
 is.vector() : is.numeric() : 데이터가 integer 혹은 double 일때 TRUE를 반환합니다.
 is.list() : 데이터 유형이 list 일때 TRUE를 반환합니다. is.character() : 원자 벡터가 문자형일때
-TRUE를 반환합니다.
-
-<img src="./seho.jpg" width="100%" />
-
-3.  다음 각 경우에 따라 c()의 출력결과를 예상해보자.
-
-<!-- end list -->
+TRUE를 반환합니다. 3. 다음 각 경우에 따라 c()의 출력결과를 예상해보자.
 
 ``` r
 c(1, FALSE)
